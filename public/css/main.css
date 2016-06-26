@@ -1,0 +1,14 @@
+.listing-info {
+  position: fixed;
+  overflow: scroll;
+  top: 0;  right: 0;  bottom: 0;
+  width: 40%;
+  padding: 20px;
+  background: #efefef;
+  border-left: 4px solid #ddd;
+}
+.listing-info .close {
+  position: absolute;
+  top: 4px;  right: 4px;
+  font-size: 30px;
+}

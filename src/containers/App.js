@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Listing from '../components/Listing';
+import ListingPanel from '../components/ListingPanel';
 
 class App extends React.Component {
   constructor(props) {
@@ -10,9 +12,16 @@ class App extends React.Component {
     this.filters = ['company', 'category', 'level', 'location'];
     this.state = {
       page: 0,
+      pageCount: 0,
       descending: false,
+      currentListing: null,
+      showListingPanel: false,
       results: ''
     };
+
+    this.parseResults = this.parseResults.bind(this);
+    this.showListingPanel = this.showListingPanel.bind(this);
+    this.closePanel = this.closePanel.bind(this);
 
     // Iterate through filters and add to state
     for(i = 0; i < this.filters.length; i++) {
@@ -22,13 +31,34 @@ class App extends React.Component {
 
   componentDidMount() {
     // Fetch first page of results
-    this.buildQuery();
+    this.fetchResults();
   }
 
-  parseRequest(xhr) {
+  showListingPanel(listing) {
+    this.setState({
+      currentListing: listing,
+      showListingPanel:
+        (listing === this.state.currentListing && this.state.showListingPanel) ? false : true
+    });
+  }
+
+  closePanel() {
+    this.setState({
+      currentListing: null,
+      showListingPanel: false
+    });
+  }
+
+  parseResults(xhr) {
     const parsed = JSON.parse(xhr.currentTarget.response);
 
-    console.log(parsed);
+    this.setState({
+      page: parsed.page,
+      pageCount: parsed.page_count,
+      results: parsed.results
+    });
+
+    console.log(parsed.results[0]);
   }
 
   fetchResults() {
@@ -39,7 +69,7 @@ class App extends React.Component {
     let oReq = new XMLHttpRequest();
 
     // Add a callback to XHR so that we can parse the response
-    oReq.addEventListener("load", this.parseRequest.bind(this));
+    oReq.addEventListener("load", this.parseResults);
     oReq.open("GET", query);
     oReq.send();
   }
@@ -51,8 +81,6 @@ class App extends React.Component {
     // Add page
     query += 'page=' + this.state.page;
 
-    console.log(this.state);
-
     // Add companies, categories, levels, locations and jobs
     for(i = 0; i < this.filters.length; i++) {
       filter = this.filters[i];
@@ -61,18 +89,37 @@ class App extends React.Component {
       }
     }
 
-    console.log(query);
     return query;
   }
 
   render() {
-   return(
-     <div className='muse-app'>
-       <div className='header'>
-         <h2>Muse Job Search</h2>
-       </div>
-     </div>
-   );
+    let listings, listingPanel;
+
+    if(this.state.results.length > 0) {
+      listings = this.state.results.map((item, i) => {
+        return (
+          <Listing key={ i } showListingPanel={ this.showListingPanel } listing={ item } />
+        );
+      });
+    }
+
+    if(this.state.showListingPanel) {
+      listingPanel = (
+        <ListingPanel listing={ this.state.currentListing } closePanel={ this.closePanel } />
+      );
+    }
+
+    return (
+      <div className='muse-app'>
+        { listingPanel }
+        <div className='header'>
+          <h2>Muse Job Search</h2>
+        </div>
+        <div className='listings'>
+          { listings }
+        </div>
+      </div>
+    );
   }
 }
 
