@@ -7,8 +7,9 @@ class ListingPanel extends React.Component {
       <div className='listing-info'>
         <span className='close' onClick={ this.props.closePanel }>&times;</span>
         <h3>{ this.props.listing.name }</h3>
-        <h5>{ this.props.listing.company.name }</h5>
+        <h5>{ this.props.listing.company.name }, { this.props.listing.locations[0].name } </h5>
         <div className='listing-content' dangerouslySetInnerHTML={{__html: this.props.listing.contents }} />
+        <a href={ this.props.listing.refs.landing_page } className='apply-now'>Apply Now</a>
       </div>
     )
   }
