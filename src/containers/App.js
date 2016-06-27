@@ -28,6 +28,7 @@ class App extends React.Component {
       refetch: false
     };
 
+    // We bind up here so we don't keep binding on every render
     this.parseResults = this.parseResults.bind(this);
     this.showListingPanel = this.showListingPanel.bind(this);
     this.closePanel = this.closePanel.bind(this);
@@ -51,6 +52,7 @@ class App extends React.Component {
     this.fetchCompanies(0);
   }
 
+  // This will iterate through the data sets and bind addFilter events only once
   createFilters() {
     let dataList = ['level', 'category', 'location'];
     let dataSources = {
@@ -76,6 +78,7 @@ class App extends React.Component {
     }
   }
 
+  // If the item doesn't exist in the array, add it. Otherwise, remove it.
   addFilter(type, item) {
     let index = this.state[type].indexOf(item);
     let cloned = this.state[type].splice(0);
@@ -92,12 +95,16 @@ class App extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    // Decided to use a flag to refetch results, since refetching manipulates
+    // state and sends it in a loop otherwise. This lets us be choosy regarding
+    // when to run the AJAX call.
     if(this.state.refetch) {
       this.fetchResults();
     }
   }
 
   changePage(page) {
+    // Minus one because paginator starts at 1 while API starts at 0
     this.setState({
       page: page - 1,
       refetch: true
@@ -108,6 +115,7 @@ class App extends React.Component {
     this.setState({
       currentListing: listing,
       showListingPanel:
+        // Is the panel showing? if not show it!
         (listing === this.state.currentListing && this.state.showListingPanel) ? false : true
     });
   }
@@ -122,6 +130,7 @@ class App extends React.Component {
   parseResults(xhr) {
     const parsed = JSON.parse(xhr.currentTarget.response);
 
+    // Get all the companies
     this.setState({
       page: parsed.page,
       pageCount: parsed.page_count,
@@ -203,12 +212,15 @@ class App extends React.Component {
   render() {
     let listings, pagination, listingPanel, locations, levels, categories, companies;
 
+    // For each of the results in our array, create a new, stateless Listing item
     if(this.state.results.length > 0) {
       listings = this.state.results.map((item, i) => {
         return (
           <Listing key={ i } showListingPanel={ this.showListingPanel } listing={ item } />
         );
       });
+
+      // And update the paginator
       pagination = (
         <Pagination
           activePage={ this.state.page + 1 }
@@ -218,12 +230,14 @@ class App extends React.Component {
       );
     }
 
+    // If we want to show a listing panel, load the component
     if(this.state.showListingPanel) {
       listingPanel = (
         <ListingPanel listing={ this.state.currentListing } closePanel={ this.closePanel } />
       );
     }
 
+    // For each of the companies, create select options
     if(this.companyList.length > 0) {
       companies = this.companyList.map((item, i) => {
         return (<option key={ i } value={ item }>{item}</option>);
